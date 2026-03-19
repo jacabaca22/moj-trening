@@ -1,5 +1,6 @@
 const formContainer = document.getElementById('form-container');
 const finalPlan = document.getElementById('final-plan');
+let dayCount = 1;
 
 function createNewRow() {
     const newRow = document.createElement('div');
@@ -30,13 +31,58 @@ function createNewRow() {
 
         <label>Kilogramy </label>
         <input type="number" placeholder="podaj ilość" class="exerciseWeight">
+        
         <button class="addBtn">Dodaj do planu</button>
+        <button class="newDayBtn">Nowy dzień</button>
+        <button class="SaveBtn" style="background: #2196F3; color: white;">Zapisz do pliku</button>
     `;
 
     formContainer.appendChild(newRow);
 
-    const currentBtn = newRow.querySelector('.addBtn');
-    currentBtn.addEventListener('click', () => handleAdd(newRow));
+    const addBtn = newRow.querySelector('.addBtn');
+    addBtn.addEventListener('click', () => handleAdd(newRow));
+
+    const newDayBtn = newRow.querySelector('.newDayBtn');
+    newDayBtn.addEventListener('click', () => handleNewDay());
+
+    // Poprawiona nazwa zmiennej z saveBtn na newSaveBtn lub odwrotnie
+    const saveBtn = newRow.querySelector('.SaveBtn');
+    saveBtn.addEventListener('click', () => handleSave());
+}
+
+function handleNewDay() {
+    dayCount++;
+    
+    const dayHeader = document.createElement('h3');
+    dayHeader.style.marginTop = "20px";
+    dayHeader.style.borderBottom = "2px solid #333";
+    dayHeader.style.paddingBottom = "5px";
+    dayHeader.innerText = `📅 Dzień ${dayCount}`;
+    
+    finalPlan.appendChild(dayHeader);
+
+    const currentNameInput = formContainer.querySelector('.exerciseName:last-of-type');
+    if (currentNameInput) currentNameInput.focus();
+}
+
+// --- TUTAJ JEST TWOJA FUNKCJA ZAPISU ---
+function handleSave() {
+    const content = finalPlan.innerText; // Pobiera sam tekst z planu
+
+    if (dayCount == 1) {
+        alert("Plan jest pusty! Dodaj ćwiczenia przed zapisem.");
+        return;
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const link = document.createElement('a');
+    
+    link.download = `Plan_Treningowy_${new Date().toLocaleDateString()}.txt`;
+    link.href = window.URL.createObjectURL(blob);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function handleAdd(rowElement) {
@@ -55,7 +101,7 @@ function handleAdd(rowElement) {
     }
 
     if (weight <= 0 || sets <= 0 || reps <= 0) {
-        alert("To niemożliwe! Wartości muszą być większe od 0.");
+        alert("Wartości muszą być większe od 0.");
         return;
     }
 
@@ -67,7 +113,6 @@ function handleAdd(rowElement) {
     entry.innerHTML = `⭐ <strong>${nameInput.value}</strong>: ${sets} serii x ${reps} powt x ${weight} kg`;
 
     const nazwaCwiczenia = nameInput.value.toLowerCase();
-
     if (nazwaCwiczenia.includes("martwy")) {
         const img = document.createElement('img');
         img.src = "martwy.jpg"; 
@@ -92,15 +137,15 @@ function handleAdd(rowElement) {
     finalPlan.appendChild(entry);
 
     rowElement.style.opacity = "0.5";
-    rowElement.querySelector('.addBtn').disabled = true;
-    nameInput.disabled = true;
-    setsSelect.disabled = true;
-    repsSelect.disabled = true;
-    weightSelect.disabled = true;
+    rowElement.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    rowElement.querySelectorAll('input, select').forEach(el => el.disabled = true);
 
     createNewRow();
 }
 
-// Inicjalizacja - czyścimy kontener i tworzymy pierwszy wiersz
 formContainer.innerHTML = ''; 
+const firstDayHeader = document.createElement('h3');
+firstDayHeader.innerText = "📅 Dzień 1";
+finalPlan.appendChild(firstDayHeader);
+
 createNewRow();
